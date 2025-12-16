@@ -1,10 +1,15 @@
+# =========================
+# AppVeyor YAML pour Flutter Windows
+# =========================
+
 image: Visual Studio 2022
 
 environment:
   FLUTTER_VERSION: stable
 
 install:
-  - git clone https://github.com/flutter/flutter.git -b %FLUTTER_VERSION% C:\flutter
+  # Vérifie si C:\flutter existe déjà, sinon clone
+  - if not exist C:\flutter git clone https://github.com/flutter/flutter.git -b %FLUTTER_VERSION% C:\flutter
   - set PATH=C:\flutter\bin;%PATH%
   - flutter config --enable-windows-desktop
   - flutter pub get
