@@ -1,33 +1,34 @@
-// lib/main.dart - Version 100% corrigée, stable et magnifique
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.init();
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
+// ==================== STOCKAGE LOCAL ====================
 class LocalStorage {
   static late SharedPreferences _prefs;
-
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
-
   static Future<void> saveMariages(List<Map<String, dynamic>> mariages) async {
     await _prefs.setString('mariages', jsonEncode(mariages));
   }
-
   static List<Map<String, dynamic>> loadMariages() {
     final str = _prefs.getString('mariages');
     if (str == null) return [];
-    return (jsonDecode(str) as List).map((e) => Map<String, dynamic>.from(e)).toList();
+    return (jsonDecode(str) as List)
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
   }
 }
 
+// ==================== STYLE ====================
 class Style {
   static const Color bg = Color(0xFF0f1620);
   static const Color card = Color(0xFF1e2a3a);
@@ -36,11 +37,11 @@ class Style {
   static const Color secondary = Color(0xFFa0b4cc);
 }
 
+// ==================== SOCKET ====================
 late IO.Socket socket;
 
+// ==================== APPLICATION ====================
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -57,9 +58,7 @@ class _MyAppState extends State<MyApp> {
       'transports': ['websocket'],
       'autoConnect': false,
     });
-
     socket.connect();
-
     socket.onConnect((_) => debugPrint('Connecté au serveur central'));
     socket.onDisconnect((_) => debugPrint('Déconnecté du serveur'));
     socket.onConnectError((err) => debugPrint('Erreur connexion: $err'));
@@ -85,148 +84,96 @@ class _MyAppState extends State<MyApp> {
           elevation: 0,
           centerTitle: true,
         ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Style.accent,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Style.text),
+          bodyMedium: TextStyle(color: Style.text),
+          bodySmall: TextStyle(color: Style.text),
+          displayLarge: TextStyle(color: Style.text),
+          displayMedium: TextStyle(color: Style.text),
+          displaySmall: TextStyle(color: Style.text),
+          headlineLarge: TextStyle(color: Style.text),
+          headlineMedium: TextStyle(color: Style.text),
+          headlineSmall: TextStyle(color: Style.text),
+          titleLarge: TextStyle(color: Style.text),
+          titleMedium: TextStyle(color: Style.text),
+          titleSmall: TextStyle(color: Style.text),
+          labelLarge: TextStyle(color: Style.text),
+          labelMedium: TextStyle(color: Style.text),
+          labelSmall: TextStyle(color: Style.text),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.all(16),
+          fillColor: Style.card.withOpacity(0.8),
+          labelStyle: const TextStyle(color: Style.secondary),
+          hintStyle: const TextStyle(color: Style.secondary),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Style.secondary),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Style.secondary),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: const BorderSide(color: Style.accent, width: 2),
           ),
-        ),
-        dataTableTheme: DataTableThemeData(
-          headingRowColor: MaterialStateProperty.all(Style.accent),
-          headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          dataRowColor: MaterialStateProperty.all(Colors.white),
-          dataTextStyle: const TextStyle(color: Colors.black87, fontSize: 15),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
-            ],
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.red, width: 2),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.red, width: 2),
           ),
         ),
       ),
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
 
 // ==================== PAGE D'ACCUEIL ====================
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
+            colors: [Style.bg, Style.card],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Style.bg, Style.card],
           ),
         ),
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '✝ Registre Paroissial des Mariages ✝',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: Style.accent,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 10.0,
-                            color: Colors.black38,
-                            offset: Offset(2.0, 2.0),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 80),
-                    Wrap(
-                      spacing: 30,
-                      runSpacing: 30,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _button(
-                          context,
-                          'Rechercher un Mariage',
-                          Colors.redAccent,
-                          const SearchPage(),
-                          Icons.search,
-                        ),
-                        _button(
-                          context,
-                          'Enregistrer un Mariage',
-                          Style.accent,
-                          const RegisterPage(),
-                          Icons.add,
-                        ),
-                        _button(
-                          context,
-                          'Voir Tous les Mariages',
-                          Colors.teal,
-                          const ListPage(),
-                          Icons.list,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        child: Center(
+          child: Wrap(
+            spacing: 30,
+            runSpacing: 30,
+            alignment: WrapAlignment.center,
+            children: [
+              _button(context, 'Rechercher', SearchPage(), Icons.search),
+              _button(context, 'Enregistrer', RegisterPage(), Icons.add),
+              _button(context, 'Tous les mariages', ListPage(), Icons.list),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _button(BuildContext context, String text, Color color, Widget page, IconData icon) {
+  Widget _button(BuildContext context, String text, Widget page, IconData icon) {
     return SizedBox(
       width: 320,
       height: 120,
-      child: Card(
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        shadowColor: Colors.black.withOpacity(0.5),
-        child: ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          ),
-          icon: Icon(icon, size: 32, color: Colors.white),
-          label: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Style.accent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
+        icon: Icon(icon, size: 32, color: Colors.white),
+        label: Text(text, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
       ),
     );
   }
@@ -234,8 +181,8 @@ class HomePage extends StatelessWidget {
 
 // ==================== PAGE RECHERCHE ====================
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
-  @override State<SearchPage> createState() => _SearchPageState();
+  @override
+  State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -301,9 +248,17 @@ class _SearchPageState extends State<SearchPage> {
           children: [
             const Text('Rechercher un mariage', style: TextStyle(fontSize: 28, color: Style.accent)),
             const SizedBox(height: 30),
-            TextField(controller: epouxController, decoration: const InputDecoration(labelText: "Nom de l'époux")),
+            TextField(
+              controller: epouxController,
+              decoration: const InputDecoration(labelText: "Nom de l'époux"),
+              style: const TextStyle(color: Style.text),
+            ),
             const SizedBox(height: 15),
-            TextField(controller: epouseController, decoration: const InputDecoration(labelText: "Nom de l'épouse")),
+            TextField(
+              controller: epouseController,
+              decoration: const InputDecoration(labelText: "Nom de l'épouse"),
+              style: const TextStyle(color: Style.text),
+            ),
             const SizedBox(height: 30),
             Expanded(
               child: results.isEmpty
@@ -337,20 +292,55 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
+// ==================== FORMATAGE DATE JJ-MM-AAAA ====================
+class DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String text = newValue.text.replaceAll(RegExp(r'\D'), ''); // Garde seulement les chiffres
+
+    StringBuffer buffer = StringBuffer();
+    int length = text.length;
+
+    // Jour (2 chiffres)
+    if (length > 0) {
+      buffer.write(text.substring(0, length > 2 ? 2 : length));
+    }
+    // Tiret après le jour
+    if (length > 2) {
+      buffer.write('-');
+      // Mois (2 chiffres)
+      buffer.write(text.substring(2, length > 4 ? 4 : length));
+    }
+    // Tiret après le mois
+    if (length > 4) {
+      buffer.write('-');
+      // Année (4 chiffres)
+      buffer.write(text.substring(4, length > 8 ? 8 : length));
+    }
+
+    String formatted = buffer.toString();
+    return newValue.copyWith(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
 // ==================== PAGE ENREGISTREMENT ====================
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
-  @override State<RegisterPage> createState() => _RegisterPageState();
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
   final Map<String, TextEditingController> controllers = {};
   String status = '';
   bool isLoading = false;
+
   final champs = [
     {"label": "Nom de l'époux", "key": "nom_epoux"},
     {"label": "Nom de l'épouse", "key": "nom_epouse"},
-    {"label": "Date du mariage (AAAA-MM-JJ)", "key": "date_mariage"},
+    {"label": "Date du mariage (JJ-MM-AAAA)", "key": "date_mariage"},
     {"label": "Lieu du mariage", "key": "lieu_mariage"},
     {"label": "Nom de la paroisse", "key": "nom_paroisse"},
     {"label": "Code paroisse (ex: KL)", "key": "code_paroisse"},
@@ -384,6 +374,15 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
+  // Conversion JJ-MM-AAAA → AAAA-MM-JJ avant envoi au serveur
+  String _convertDateToServerFormat(String dateJJMMAAAA) {
+    final cleaned = dateJJMMAAAA.replaceAll('-', '');
+    if (cleaned.length == 8) {
+      return '${cleaned.substring(4, 8)}-${cleaned.substring(2, 4)}-${cleaned.substring(0, 2)}';
+    }
+    return dateJJMMAAAA; // Si format invalide, on envoie tel quel (le serveur rejettera)
+  }
+
   void _submit() {
     if (isLoading) return;
     if (!socket.connected) {
@@ -400,11 +399,15 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     final data = <String, String>{};
-    controllers.forEach((key, ctrl) => data[key] = ctrl.text);
+    controllers.forEach((key, ctrl) {
+      if (key == 'date_mariage') {
+        data[key] = _convertDateToServerFormat(ctrl.text);
+      } else {
+        data[key] = ctrl.text;
+      }
+    });
 
-    // On vide immédiatement les champs
     for (var c in controllers.values) c.clear();
-
     socket.emit('enregistrer_mariage', data);
   }
 
@@ -428,7 +431,19 @@ class _RegisterPageState extends State<RegisterPage> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: TextField(
                 controller: controllers[c['key']!],
-                decoration: InputDecoration(labelText: c['label']),
+                decoration: InputDecoration(
+                  labelText: c['label'],
+                  hintText: c['key'] == 'date_mariage' ? 'JJ-MM-AAAA' : null,
+                ),
+                style: const TextStyle(color: Style.text),
+                keyboardType: c['key'] == 'date_mariage' ? TextInputType.number : TextInputType.text,
+                inputFormatters: c['key'] == 'date_mariage'
+                    ? [
+                  FilteringTextInputFormatter.digitsOnly,
+                  DateInputFormatter(),
+                  LengthLimitingTextInputFormatter(10),
+                ]
+                    : null,
               ),
             )),
             const SizedBox(height: 30),
@@ -450,10 +465,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-// ==================== PAGE LISTE ====================
+// ==================== PAGE LISTE AVEC DÉTAILS ET SUPPRESSION ====================
 class ListPage extends StatefulWidget {
-  const ListPage({Key? key}) : super(key: key);
-  @override State<ListPage> createState() => _ListPageState();
+  @override
+  State<ListPage> createState() => _ListPageState();
 }
 
 class _ListPageState extends State<ListPage> {
@@ -472,14 +487,18 @@ class _ListPageState extends State<ListPage> {
         LocalStorage.saveMariages(mariages);
       }
     });
+    socket.on('mariage_supprime', (data) {
+      setState(() {
+        mariages.removeWhere((m) => m['num_acte_central'] == data['num_acte_central']);
+        LocalStorage.saveMariages(mariages);
+      });
+    });
     _load();
   }
 
   void _load() {
     if (!socket.connected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune connexion internet')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucune connexion internet')));
       setState(() {
         mariages = LocalStorage.loadMariages();
         isLoading = false;
@@ -490,16 +509,96 @@ class _ListPageState extends State<ListPage> {
     socket.emit('lister_tout');
   }
 
+  void _showDetails(Map<String, dynamic> mariage) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Style.card,
+        title: Text('Détails du mariage', style: TextStyle(color: Style.accent)),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _detailRow('Époux', mariage['nom_epoux']),
+              _detailRow('Épouse', mariage['nom_epouse']),
+              _detailRow('Date du mariage', mariage['date_mariage']),
+              _detailRow('Lieu', mariage['lieu_mariage']),
+              _detailRow('Paroisse', mariage['nom_paroisse']),
+              _detailRow('Officiant', mariage['officiant']),
+              _detailRow('Témoin 1', mariage['temoin1']),
+              _detailRow('Témoin 2', mariage['temoin2']),
+              _detailRow('N° acte local', mariage['num_acte_local'].toString()),
+              _detailRow('N° acte central', mariage['num_acte_central'], bold: true),
+              _detailRow('État transmission', mariage['transmis']),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Fermer', style: TextStyle(color: Style.accent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String? value, {bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(text: '$label : ', style: TextStyle(color: Style.secondary, fontWeight: FontWeight.bold)),
+            TextSpan(text: value ?? '', style: TextStyle(color: Style.text, fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmerSuppression(String numActe, String epoux, String epouse) async {
+    if (!socket.connected) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impossible : pas de connexion')));
+      return;
+    }
+
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Style.card,
+        title: const Text('Confirmer la suppression', style: TextStyle(color: Style.text)),
+        content: Text(
+          'Voulez-vous vraiment supprimer le mariage de\n$epoux et $epouse ?\n\n(N° acte : $numActe)\n\nCette action est irréversible.',
+          style: const TextStyle(color: Style.text),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Annuler', style: TextStyle(color: Style.secondary))),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      socket.emit('supprimer_mariage', {'num_acte_central': numActe});
+    }
+  }
+
   @override
   void dispose() {
     socket.off('liste_complete');
+    socket.off('mariage_supprime');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tous les mariages enregistrés')),
+      appBar: AppBar(title: const Text('Tous les mariages')),
       body: Column(
         children: [
           Padding(
@@ -510,9 +609,7 @@ class _ListPageState extends State<ListPage> {
               label: const Text('Actualiser la liste'),
             ),
           ),
-          mariages.isEmpty && !isLoading
-              ? const Expanded(child: Center(child: Text('Aucun mariage enregistré', style: TextStyle(color: Colors.white70))))
-              : Expanded(
+          Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
@@ -522,6 +619,7 @@ class _ListPageState extends State<ListPage> {
                   DataColumn(label: Text('Date')),
                   DataColumn(label: Text('N° Acte')),
                   DataColumn(label: Text('État')),
+                  DataColumn(label: Text('Actions')),
                 ],
                 rows: mariages
                     .map((m) => DataRow(cells: [
@@ -530,6 +628,19 @@ class _ListPageState extends State<ListPage> {
                   DataCell(Text(m['date_mariage'] ?? '')),
                   DataCell(Text(m['num_acte_central'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold))),
                   DataCell(Text(m['transmis'] ?? '', style: TextStyle(color: (m['transmis'] ?? '').contains('Oui') ? Colors.green : Colors.orange))),
+                  DataCell(Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.more_vert, color: Style.accent),
+                        onPressed: () => _showDetails(m),
+                        tooltip: 'Voir les détails',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _confirmerSuppression(m['num_acte_central'], m['nom_epoux'] ?? '', m['nom_epouse'] ?? ''),
+                      ),
+                    ],
+                  )),
                 ]))
                     .toList(),
               ),
@@ -540,6 +651,3 @@ class _ListPageState extends State<ListPage> {
     );
   }
 }
-
-
-
