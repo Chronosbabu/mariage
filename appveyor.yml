@@ -1,0 +1,17 @@
+image: Visual Studio 2022
+
+environment:
+  FLUTTER_VERSION: stable
+
+install:
+  - git clone https://github.com/flutter/flutter.git -b %FLUTTER_VERSION% C:\flutter
+  - set PATH=C:\flutter\bin;%PATH%
+  - flutter config --enable-windows-desktop
+  - flutter pub get
+
+build_script:
+  - flutter build windows --release
+
+artifacts:
+  - path: build\windows\x64\runner\Release\
+    name: WindowsExe
