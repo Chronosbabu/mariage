@@ -1,0 +1,15 @@
+workflows:
+  macos-build:
+    name: macOS Build
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+
+      - name: Build macOS
+        script: flutter build macos --release
+
+    artifacts:
+      - build/macos/Build/Products/Release/*.app
